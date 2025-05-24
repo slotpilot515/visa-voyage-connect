@@ -5,7 +5,6 @@ import { useToast } from '@/hooks/use-toast';
 import RichTextEditor from './RichTextEditor';
 import { db } from '@/firebase/firebaseConfig';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { usePosts } from '@/hooks/usePosts';
 
 interface CreatePostModalProps {
   type: 'experience' | 'discussion' | 'companion';
@@ -86,7 +85,6 @@ const CreatePostModal = ({ type, isOpen, onClose }: CreatePostModalProps) => {
       });
 
       onClose();
-
       setTitle('');
       setContent('');
       setCountry('');
@@ -113,7 +111,7 @@ const CreatePostModal = ({ type, isOpen, onClose }: CreatePostModalProps) => {
     switch (type) {
       case 'experience': return 'Share Your Visa Experience';
       case 'discussion': return 'Start a Discussion';
-      case 'companion': return 'Find Travel Companions';
+      case 'companion':  return 'Find Travel Companions';
     }
   };
 
@@ -122,9 +120,9 @@ const CreatePostModal = ({ type, isOpen, onClose }: CreatePostModalProps) => {
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: .95 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            exit={{ opacity: 0, scale: .95 }}
             className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between p-6 border-b">
@@ -161,7 +159,7 @@ const CreatePostModal = ({ type, isOpen, onClose }: CreatePostModalProps) => {
                 disabled={isLoading}
                 className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
               >
-                {isLoading ? 'Posting...' : 'Post'}
+                {isLoading ? 'Posting…' : 'Post'}
               </button>
             </form>
           </motion.div>

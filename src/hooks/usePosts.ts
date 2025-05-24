@@ -1,12 +1,6 @@
 import { useEffect, useState } from 'react';
 import { db } from '@/firebase/firebaseConfig';
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  orderBy,
-} from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 
 export const usePosts = (type: string) => {
   const [posts, setPosts] = useState([]);
@@ -25,7 +19,7 @@ export const usePosts = (type: string) => {
         const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setPosts(docs);
       } catch (err) {
-        console.error("🔥 Firestore fetch error:", err);
+        console.error('🔥 Firestore fetch error:', err);
       } finally {
         setLoading(false);
       }

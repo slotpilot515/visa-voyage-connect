@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Bold, Italic, Link as LinkIcon, Image as ImageIcon, List, ListOrdered } from 'lucide-react';
 
 interface RichTextEditorProps {
@@ -22,16 +21,11 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
 
   const formatDoc = (command: string, value: string = '') => {
     document.execCommand(command, false, value);
-    
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
-    }
+    if (editorRef.current) onChange(editorRef.current.innerHTML);
   };
 
   const handleKeyUp = () => {
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
-    }
+    if (editorRef.current) onChange(editorRef.current.innerHTML);
   };
 
   const handleAddLink = () => {
@@ -53,59 +47,29 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden">
       <div className="bg-gray-50 border-b border-gray-300 p-2 flex flex-wrap gap-2">
-        <button
-          onClick={() => formatDoc('bold')}
-          className="p-2 rounded hover:bg-gray-200"
-          type="button"
-        >
+        <button onClick={() => formatDoc('bold')} className="p-2 rounded hover:bg-gray-200" type="button">
           <Bold className="h-4 w-4" />
         </button>
-        <button
-          onClick={() => formatDoc('italic')}
-          className="p-2 rounded hover:bg-gray-200"
-          type="button"
-        >
+        <button onClick={() => formatDoc('italic')} className="p-2 rounded hover:bg-gray-200" type="button">
           <Italic className="h-4 w-4" />
         </button>
-        <button
-          onClick={() => formatDoc('insertUnorderedList')}
-          className="p-2 rounded hover:bg-gray-200"
-          type="button"
-        >
+        <button onClick={() => formatDoc('insertUnorderedList')} className="p-2 rounded hover:bg-gray-200" type="button">
           <List className="h-4 w-4" />
         </button>
-        <button
-          onClick={() => formatDoc('insertOrderedList')}
-          className="p-2 rounded hover:bg-gray-200"
-          type="button"
-        >
+        <button onClick={() => formatDoc('insertOrderedList')} className="p-2 rounded hover:bg-gray-200" type="button">
           <ListOrdered className="h-4 w-4" />
         </button>
-        <button
-          onClick={() => setIsLinkModalOpen(true)}
-          className="p-2 rounded hover:bg-gray-200"
-          type="button"
-        >
+        <button onClick={() => setIsLinkModalOpen(true)} className="p-2 rounded hover:bg-gray-200" type="button">
           <LinkIcon className="h-4 w-4" />
         </button>
-        <button
-          onClick={() => setIsImageModalOpen(true)}
-          className="p-2 rounded hover:bg-gray-200"
-          type="button"
-        >
+        <button onClick={() => setIsImageModalOpen(true)} className="p-2 rounded hover:bg-gray-200" type="button">
           <ImageIcon className="h-4 w-4" />
         </button>
       </div>
-      
-      <div
-        ref={editorRef}
-        className="p-4 min-h-[200px] focus:outline-none"
-        contentEditable
-        onKeyUp={handleKeyUp}
-        onBlur={handleKeyUp}
-      />
 
-      {/* Link Modal */}
+      <div ref={editorRef} className="p-4 min-h-[200px] focus:outline-none" contentEditable onKeyUp={handleKeyUp} onBlur={handleKeyUp} />
+
+      {/* link modal */}
       {isLinkModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
@@ -118,18 +82,10 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
               className="w-full p-2 border border-gray-300 rounded-lg mb-4"
             />
             <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setIsLinkModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg"
-                type="button"
-              >
+              <button onClick={() => setIsLinkModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg" type="button">
                 Cancel
               </button>
-              <button
-                onClick={handleAddLink}
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg"
-                type="button"
-              >
+              <button onClick={handleAddLink} className="px-4 py-2 bg-gray-800 text-white rounded-lg" type="button">
                 Add
               </button>
             </div>
@@ -137,7 +93,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         </div>
       )}
 
-      {/* Image Modal */}
+      {/* image modal */}
       {isImageModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
@@ -150,18 +106,10 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
               className="w-full p-2 border border-gray-300 rounded-lg mb-4"
             />
             <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setIsImageModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg"
-                type="button"
-              >
+              <button onClick={() => setIsImageModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg" type="button">
                 Cancel
               </button>
-              <button
-                onClick={handleAddImage}
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg"
-                type="button"
-              >
+              <button onClick={handleAddImage} className="px-4 py-2 bg-gray-800 text-white rounded-lg" type="button">
                 Add
               </button>
             </div>
