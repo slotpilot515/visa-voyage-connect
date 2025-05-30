@@ -1,119 +1,94 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Plus, GraduationCap, MessageSquare, Users } from 'lucide-react';
-import CreatePostModal from '../components/community/CreatePostModal';
-import { useToast } from '@/hooks/use-toast';
-import { usePosts } from '@/hooks/usePosts';
+import { useState, useEffect } from "react";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { db } from "@/firebase/firebaseConfig";
+import CreatePostModal from "@/components/community/CreatePostModal";
+import { motion } from "framer-motion";
 
 const Community = () => {
-  const [activeTab, setActiveTab] = useState('experiences');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("experience");
+  const [posts, setPosts] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const getCurrentPostType = () => {
-    switch (activeTab) {
-      case 'experiences': return 'experience';
-      case 'discussions': return 'discussion';
-      case 'companions':  return 'companion';
-      default: return 'experience';
-    }
-  };
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setPosts(data);
+    };
+    fetchPosts();
+  }, [isModalOpen]);
 
-  const { posts, loading } = usePosts(getCurrentPostType());
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      toast({
-        title: 'Search initiated',
-        description: `Searching for: "${searchTerm}"`,
-      });
-    }
-  };
+  const filteredPosts = posts.filter((post) => post.type === activeTab);
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <section className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <motion.h1 initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} className="text-4xl font-bold mb-6">
-            Community Hub
-          </motion.h1>
-          <motion.p initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:.1}} className="text-xl text-gray-300 mb-8">
-            Share experiences, find travel companions, and get visa advice from the community
-          </motion.p>
-          <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto">
-            <input
-              type="text"
-              placeholder="Search discussions, experiences, or travel companions..."
-              className="w-full px-6 py-4 rounded-full bg-white/10 border border-white/20 text-white placeholder-gray-400"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button type="submit" className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
-              <Search className="h-5 w-5" />
-            </button>
-          </form>
+    <div className="min-h-screen bg-gray-50 text-gray-800 px-4 py-6">
+      <div className="flex flex-col items-center text-center mb-6">
+        <h1 className="text-4xl font-bold">SlotPilot</h1>
+        <p className="text-gray-600 mt-1">Your trusted hub for visa support and travel companions</p>
+        <div className="flex gap-4 mt-2 text-sm">
+          <a href="https://whatsapp.com/channel/0029VaPCws2002T41zrJOa2V" className="text-green-600 font-medium">WhatsApp</a>
+          <a href="#" className="text-pink-600 font-medium">Instagram</a>
+          <a href="#" className="text-blue-600 font-medium">Telegram</a>
         </div>
-      </section>
-
-      <div className="container mx-auto px-4 py-6">
-        <button onClick={()=>setIsCreateModalOpen(true)} className="bg-gray-800 text-white px-6 py-3 rounded-lg flex items-center gap-2">
-          <Plus className="h-5 w-5"/> <span>Create Post</span>
-        </button>
       </div>
 
-      <section className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          <div className="flex flex-col items-center">
-            <GraduationCap className="h-8 w-8 text-gray-700 mb-2" />
-            <p className="text-2xl font-bold">1,234+</p>
-            <p className="text-gray-600">Visa Experiences</p>
-          </div>
-          <div className="flex flex-col items-center">
-            <MessageSquare className="h-8 w-8 text-gray-700 mb-2" />
-            <p className="text-2xl font-bold">5,678+</p>
-            <p className="text-gray-600">Active Discussions</p>
-          </div>
-          <div className="flex flex-col items-center">
-            <Users className="h-8 w-8 text-gray-700 mb-2" />
-            <p className="text-2xl font-bold">890+</p>
-            <p className="text-gray-600">Travel Companions</p>
-          </div>
-        </div>
-      </section>
+      <motion.div
+        className="bg-yellow-100 text-yellow-800 font-semibold p-2 rounded shadow mb-6 overflow-hidden"
+        animate={{ x: [0, -500] }}
+        transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
+      >
+        🚨 Beware of scammers! Always verify information before proceeding. 🌎 Stay connected for updates!
+      </motion.div>
 
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-center mb-8">
-            <div className="bg-white rounded-full p-1 shadow-md flex">
-              {['experiences','discussions','companions'].map(tab=>(
-                <button key={tab} onClick={()=>setActiveTab(tab)} className={`px-6 py-2 rounded-full ${activeTab===tab?'bg-gray-800 text-white':'text-gray-600 hover:text-gray-800'}`}>
-                  {tab==='experiences'?'Visa Experiences':tab==='discussions'?'Discussions':'Travel Companions'}
-                </button>
-              ))}
-            </div>
-          </div>
+      <div className="flex flex-wrap justify-center gap-4 mb-6">
+        {["experience", "discussion", "companion", "accommodation"].map((tab) => (
+          <button
+            key={tab}
+            className={`px-4 py-2 rounded-full ${activeTab === tab ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab === "experience" ? "Visa Experience" : tab === "discussion" ? "Discussion" : tab === "companion" ? "Travel Companion" : "Accommodation"}
+          </button>
+        ))}
+      </div>
 
-          {loading ? (
-            <p className="text-center text-gray-500">Loading posts…</p>
-          ) : posts.length===0 ? (
-            <p className="text-center text-gray-500">No posts found for "{activeTab}"</p>
-          ) : (
-            <div className="grid gap-6 max-w-4xl mx-auto">
-              {posts.map((post:any)=>(
-                <div key={post.id} className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-bold text-gray-800">{post.title}</h2>
-                  <p className="text-gray-700 mt-2">{post.content}</p>
-                  <p className="text-sm text-gray-500 mt-2">Type: {post.type}</p>
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="fixed bottom-6 right-6 bg-blue-600 text-white py-3 px-6 rounded-full shadow-lg hover:bg-blue-700 transition"
+      >
+        + Create {activeTab === "experience" ? "Experience" : activeTab === "discussion" ? "Discussion" : activeTab === "companion" ? "Companion" : "Accommodation"} Post
+      </button>
+
+      <div className="mt-8 space-y-4">
+        {filteredPosts.length > 0 ? (
+          filteredPosts.map((post) => (
+            <div key={post.id} className="bg-white p-4 rounded shadow">
+              <h2 className="text-lg font-bold">{post.title}</h2>
+              <p className="text-sm text-gray-600 mt-1">{post.content}</p>
+              {post.country && <p className="mt-2"><strong>From:</strong> {post.country}</p>}
+              {post.flightDetails && (
+                <div className="text-sm mt-2">
+                  <p><strong>Flight:</strong> {post.flightDetails.from} ➔ {post.flightDetails.to}</p>
+                  <p><strong>Airline:</strong> {post.flightDetails.airline} | <strong>PNR:</strong> {post.flightDetails.pnr}</p>
+                  <p><strong>Date:</strong> {post.flightDetails.date} | <strong>Time:</strong> {post.flightDetails.time}</p>
                 </div>
-              ))}
+              )}
+              {post.visaType && <p><strong>Visa Type:</strong> {post.visaType}</p>}
+              {post.status && (
+                <p className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${post.status === "Approved" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                  {post.status}
+                </p>
+              )}
+              <p className="text-xs text-gray-400 mt-2">Posted: {post.createdAt?.toDate()?.toLocaleString()}</p>
             </div>
-          )}
-        </div>
-      </section>
+          ))
+        ) : (
+          <p className="text-center text-gray-500">No posts yet. Be the first to share your story!</p>
+        )}
+      </div>
 
-      <CreatePostModal type={getCurrentPostType() as any} isOpen={isCreateModalOpen} onClose={()=>setIsCreateModalOpen(false)}/>
+      <CreatePostModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} type={activeTab} />
     </div>
   );
 };
