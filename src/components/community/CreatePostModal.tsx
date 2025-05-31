@@ -1,171 +1,120 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Image as ImageIcon, Paperclip } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import RichTextEditor from './RichTextEditor';
-import { db } from '@/firebase/firebaseConfig';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+// src/components/community/CreatePostModal.tsx
+import { useState } from "react";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/firebase/firebaseConfig";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-interface CreatePostModalProps {
-  type: 'experience' | 'discussion' | 'companion';
-  isOpen: boolean;
-  onClose: () => void;
-}
+const countries = ["India", "USA", "Canada", "UK", "Germany"];
+const indiaStates = ["Telangana", "Chennai", "Mumbai", "Kolkata", "Delhi"];
+const visaTypes = ["F1","F2","H1B","H4", "B1", "B2", "L1",];
+const statuses = ["Approved", "Rejected"];
 
-const CreatePostModal = ({ type, isOpen, onClose }: CreatePostModalProps) => {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [country, setCountry] = useState('');
-  const [visaType, setVisaType] = useState('');
-  const [topic, setTopic] = useState('');
-  const [destination, setDestination] = useState('');
-  const [groupSize, setGroupSize] = useState(1);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [newTag, setNewTag] = useState('');
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isPublic, setIsPublic] = useState(true);
+const CreatePostModal = ({ isOpen, onClose, type }) => {
+  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [fromCountry, setFromCountry] = useState("");
+  const [fromState, setFromState] = useState("");
+  const [toCountry, setToCountry] = useState("");
+  const [visaType, setVisaType] = useState("");
+  const [status, setStatus] = useState("");
+  const [appointmentDate, setAppointmentDate] = useState("");
+  const [appointmentTime, setAppointmentTime] = useState("");
+  const [flightFrom, setFlightFrom] = useState("");
+  const [flightTo, setFlightTo] = useState("");
+  const [airline, setAirline] = useState("");
+  const [pnr, setPnr] = useState("");
 
-  const { toast } = useToast();
+  const handleSubmit = async () => {
+    const payload = {
+      name,
+      title,
+      content,
+      type,
+      createdAt: serverTimestamp(),
+    };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (type === "experience") {
+      payload.fromCountry = fromCountry;
+      payload.fromState = fromState;
+      payload.toCountry = toCountry;
+      payload.visaType = visaType;
+      payload.status = status;
+      payload.appointmentDate = appointmentDate;
+      payload.appointmentTime = appointmentTime;
     }
-  };
 
-  const handleAddTag = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && newTag.trim()) {
-      e.preventDefault();
-      if (!tags.includes(newTag.trim())) {
-        setTags([...tags, newTag.trim()]);
-      }
-      setNewTag('');
+    if (type === "companion") {
+      payload.flightDetails = { from: flightFrom, to: flightTo, airline, pnr };
     }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
 
     try {
-      const payload = {
-        title,
-        content,
-        type,
-        country,
-        visaType,
-        topic,
-        destination,
-        groupSize,
-        startDate,
-        endDate,
-        tags,
-        createdAt: serverTimestamp(),
-        isPublic,
-        image: imagePreview || '',
-      };
-
-      await addDoc(collection(db, 'posts'), payload);
-
-      toast({
-        title: '✅ Post created',
-        description: 'Your post was saved in Firestore successfully.',
-      });
-
+      await addDoc(collection(db, "posts"), payload);
       onClose();
-      setTitle('');
-      setContent('');
-      setCountry('');
-      setVisaType('');
-      setTopic('');
-      setDestination('');
-      setGroupSize(1);
-      setStartDate('');
-      setEndDate('');
-      setTags([]);
-      setImagePreview(null);
-    } catch (error) {
-      console.error('Failed to post:', error);
-      toast({
-        title: '❌ Failed to create post',
-        description: 'An error occurred while saving the post.',
-      });
-    } finally {
-      setIsLoading(false);
+      setName(""); setTitle(""); setContent(""); setFromCountry(""); setFromState("");
+      setToCountry(""); setVisaType(""); setStatus(""); setAppointmentDate(""); setAppointmentTime("");
+      setFlightFrom(""); setFlightTo(""); setAirline(""); setPnr("");
+    } catch (err) {
+      console.error("Error creating post:", err);
     }
   };
 
-  const getTitle = () => {
-    switch (type) {
-      case 'experience': return 'Share Your Visa Experience';
-      case 'discussion': return 'Start a Discussion';
-      case 'companion':  return 'Find Travel Companions';
-    }
-  };
+  if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <motion.div
-            initial={{ opacity: 0, scale: .95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: .95 }}
-            className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
-          >
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-2xl font-semibold text-gray-800">{getTitle()}</h2>
-              <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-                <X className="h-6 w-6" />
-              </button>
-            </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create a {type} Post</DialogTitle>
+        </DialogHeader>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-                placeholder="Enter title"
-                required
-              />
-              <RichTextEditor content={content} onChange={setContent} />
-              <input
-                type="text"
-                placeholder="Add tag"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                onKeyDown={handleAddTag}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-              />
-              {imagePreview && (
-                <img src={imagePreview} alt="Preview" className="max-h-48 rounded-lg" />
-              )}
-              <input type="file" accept="image/*" onChange={handleImageUpload} />
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
-              >
-                {isLoading ? 'Posting…' : 'Post'}
-              </button>
-            </form>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+        <Input placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} />
+        <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <textarea placeholder="Your Story..." value={content} onChange={(e) => setContent(e.target.value)} className="w-full p-2 border rounded" />
+
+        {type === "experience" && (
+          <>
+            <select value={fromCountry} onChange={(e) => setFromCountry(e.target.value)} className="w-full p-2 border rounded">
+              <option>Select From Country</option>
+              {countries.map((c) => <option key={c}>{c}</option>)}
+            </select>
+            {fromCountry === "India" && (
+              <select value={fromState} onChange={(e) => setFromState(e.target.value)} className="w-full p-2 border rounded">
+                <option>Select State</option>
+                {indiaStates.map((s) => <option key={s}>{s}</option>)}
+              </select>
+            )}
+            <select value={toCountry} onChange={(e) => setToCountry(e.target.value)} className="w-full p-2 border rounded">
+              <option>Select Visa To Country</option>
+              {countries.map((c) => <option key={c}>{c}</option>)}
+            </select>
+            <select value={visaType} onChange={(e) => setVisaType(e.target.value)} className="w-full p-2 border rounded">
+              <option>Select Visa Type</option>
+              {visaTypes.map((v) => <option key={v}>{v}</option>)}
+            </select>
+            <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full p-2 border rounded">
+              <option>Select Status</option>
+              {statuses.map((s) => <option key={s}>{s}</option>)}
+            </select>
+            <Input type="date" value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} />
+            <Input type="time" value={appointmentTime} onChange={(e) => setAppointmentTime(e.target.value)} />
+          </>
+        )}
+
+        {type === "companion" && (
+          <>
+            <Input placeholder="From" value={flightFrom} onChange={(e) => setFlightFrom(e.target.value)} />
+            <Input placeholder="To" value={flightTo} onChange={(e) => setFlightTo(e.target.value)} />
+            <Input placeholder="Airline" value={airline} onChange={(e) => setAirline(e.target.value)} />
+            <Input placeholder="PNR" value={pnr} onChange={(e) => setPnr(e.target.value)} />
+          </>
+        )}
+
+        <Button onClick={handleSubmit} className="mt-4 w-full">Post</Button>
+      </DialogContent>
+    </Dialog>
   );
 };
 
