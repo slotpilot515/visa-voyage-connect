@@ -1,43 +1,32 @@
-import { useEffect, useState } from "react";
-import { collection, addDoc, getDocs, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase/firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
-const postsRef = collection(db, "posts");
-const querySnapshot = await getDocs(postsRef);
+import { useEffect, useState } from 'react';
+import { db } from '@/firebase/firebaseConfig';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 
-export interface Post {
-  id?: string;
-  title: string;
-  content: string;
-  country: string;
-  visaType: string;
-  status: string;
-  flightDate?: string;
-  flightTime?: string;
-  airline?: string;
-  pnr?: string;
-  createdAt?: any;
-  likes?: number;
-}
-
-export const usePosts = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-
-  const fetchPosts = async () => {
-    const snapshot = await getDocs(collection(db, "posts"));
-    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
-    setPosts(data);
-  };
-
-  const createPost = async (post: Post) => {
-    const newPost = { ...post, createdAt: serverTimestamp(), likes: 0 };
-    await addDoc(collection(db, "posts"), newPost);
-    fetchPosts();
-  };
+export const usePosts = (type: string) => {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const q = query(
+          collection(db, 'posts'),
+          where('type', '==', type),
+          orderBy('createdAt', 'desc')
+        );
+        const snapshot = await getDocs(q);
+        const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setPosts(docs);
+      } catch (err) {
+        console.error('🔥 Firestore fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  return { posts, createPost };
+    fetchData();
+  }, [type]);
+
+  return { posts, loading };
 };
